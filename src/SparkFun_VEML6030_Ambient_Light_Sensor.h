@@ -199,7 +199,7 @@ class SparkFun_Ambient_Light
     // value exceeds 1000 then a compensation formula is applied to it. 
     float readWhiteLight();
 
-  private:
+  public:
 
     uint8_t _address;
     
