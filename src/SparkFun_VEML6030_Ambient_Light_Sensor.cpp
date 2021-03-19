@@ -323,7 +323,7 @@ uint8_t SparkFun_Ambient_Light::readInterrupt(){
 // REG0x02, bits[15:0]
 // This function sets the lower limit for the Ambient Light Sensor's interrupt. 
 // It takes a lux value as its paramater.
-void SparkFun_Ambient_Light::setIntLowThresh(uint32_t luxVal){
+void SparkFun_Ambient_Light::setIntLowThresh(float luxVal){
 
   if (luxVal < 0 || luxVal > 120000)
     return;
@@ -335,10 +335,10 @@ void SparkFun_Ambient_Light::setIntLowThresh(uint32_t luxVal){
 
 // REG0x02, bits[15:0]
 // This function reads the lower limit for the Ambient Light Sensor's interrupt. 
-uint32_t SparkFun_Ambient_Light::readLowThresh(){
+float SparkFun_Ambient_Light::readLowThresh(){
 
   uint16_t threshVal = _readRegister(L_THRESH_REG);
-  uint32_t threshLux = _calculateLux(threshVal); 
+  float threshLux = _calculateLux(threshVal); 
   return threshLux; 
 
 }
@@ -346,7 +346,7 @@ uint32_t SparkFun_Ambient_Light::readLowThresh(){
 // REG0x01, bits[15:0]
 // This function sets the upper limit for the Ambient Light Sensor's interrupt. 
 // It takes a lux value as its paramater.
-void SparkFun_Ambient_Light::setIntHighThresh(uint32_t luxVal){
+void SparkFun_Ambient_Light::setIntHighThresh(float luxVal){
 
   if (luxVal < 0 || luxVal > 120000)
     return;
@@ -358,10 +358,10 @@ void SparkFun_Ambient_Light::setIntHighThresh(uint32_t luxVal){
 
 // REG0x01, bits[15:0]
 // This function reads the upper limit for the Ambient Light Sensor's interrupt. 
-uint32_t SparkFun_Ambient_Light::readHighThresh(){
+float SparkFun_Ambient_Light::readHighThresh(){
 
   uint16_t threshVal = _readRegister(H_THRESH_REG);
-  uint32_t threshLux = _calculateLux(threshVal); 
+  float threshLux = _calculateLux(threshVal); 
   return threshLux; 
 
 }
@@ -370,13 +370,13 @@ uint32_t SparkFun_Ambient_Light::readHighThresh(){
 // This function gets the sensor's ambient light's lux value. The lux value is
 // determined based on current gain and integration time settings. If the lux
 // value exceeds 1000 then a compensation formula is applied to it. 
-uint32_t SparkFun_Ambient_Light::readLight(){
+float SparkFun_Ambient_Light::readLight(){
 
   uint16_t lightBits =  _readRegister(AMBIENT_LIGHT_DATA_REG); 
-  uint32_t luxVal = _calculateLux(lightBits); 
+  float luxVal = _calculateLux(lightBits); 
 
   if (luxVal > 1000) {
-    uint32_t compLux = _luxCompensation(luxVal); 
+    float compLux = _luxCompensation(luxVal); 
     return compLux; 
   }
   else
@@ -388,13 +388,13 @@ uint32_t SparkFun_Ambient_Light::readLight(){
 // This function gets the sensor's ambient light's lux value. The lux value is
 // determined based on current gain and integration time settings. If the lux
 // value exceeds 1000 then a compensation formula is applied to it. 
-uint32_t SparkFun_Ambient_Light::readWhiteLight(){
+float SparkFun_Ambient_Light::readWhiteLight(){
 
   uint16_t lightBits = _readRegister(WHITE_LIGHT_DATA_REG); 
-  uint32_t luxVal = _calculateLux(lightBits); 
+  float luxVal = _calculateLux(lightBits); 
 
   if (luxVal > 1000) {
-    uint32_t compLux = _luxCompensation(luxVal); 
+    float compLux = _luxCompensation(luxVal); 
     return compLux; 
   }
   else
@@ -406,10 +406,10 @@ uint32_t SparkFun_Ambient_Light::readWhiteLight(){
 // "Illumination values higher than 1000 lx show non-linearity. This
 // non-linearity is the same for all sensors, so a compensation forumla..."
 // etc. etc. 
-uint32_t SparkFun_Ambient_Light::_luxCompensation(uint32_t _luxVal){ 
+float SparkFun_Ambient_Light::_luxCompensation(float _luxVal){ 
 
   // Polynomial is pulled from pg 10 of the datasheet. 
-  uint32_t _compLux = (.00000000000060135 * (pow(_luxVal, 4))) - 
+  float _compLux = (.00000000000060135 * (pow(_luxVal, 4))) - 
                       (.0000000093924 * (pow(_luxVal, 3))) + 
                       (.000081488 * (pow(_luxVal,2))) + 
                       (1.0023 * _luxVal);
@@ -422,7 +422,7 @@ uint32_t SparkFun_Ambient_Light::_luxCompensation(uint32_t _luxVal){
 // to use by using the bit representation of the gain as an index to look up
 // the conversion value in the correct integration time array. It then converts 
 // the value and returns it.  
-uint32_t SparkFun_Ambient_Light::_calculateLux(uint16_t _lightBits){
+float SparkFun_Ambient_Light::_calculateLux(uint16_t _lightBits){
 
   float _luxConv; 
   uint8_t _convPos;  
@@ -463,7 +463,7 @@ uint32_t SparkFun_Ambient_Light::_calculateLux(uint16_t _lightBits){
 
   // Multiply the value from the 16 bit register to the conversion value and return
   // it. 
-  uint32_t _calculatedLux = (_luxConv * _lightBits);
+  float _calculatedLux = (_luxConv * _lightBits);
   return _calculatedLux;
 
 }
@@ -474,7 +474,7 @@ uint32_t SparkFun_Ambient_Light::_calculateLux(uint16_t _lightBits){
 // intergration time settings. As a result the lux value needs to be
 // calculated with the current settings and this function accomplishes
 // that.  
-uint16_t SparkFun_Ambient_Light::_calculateBits(uint32_t _luxVal){
+uint16_t SparkFun_Ambient_Light::_calculateBits(float _luxVal){
 
   float _luxConv; 
   uint8_t _convPos;  
@@ -532,6 +532,7 @@ void SparkFun_Ambient_Light::_writeRegister(uint8_t _wReg, uint16_t _mask,\
   _i2cWrite &= _mask; // Mask the position we want to write to.
   _i2cWrite |= (_bits << _startPosition);  // Place the given bits to the variable
   _i2cPort->beginTransmission(_address); // Start communication.
+  //Serial.printf("write reg 0x%x = 0x%x\n", _wReg, _i2cWrite);
   _i2cPort->write(_wReg); // at register....
   _i2cPort->write(_i2cWrite); // Write LSB to register...
   _i2cPort->write(_i2cWrite >> 8); // Write MSB to register...
@@ -552,6 +553,7 @@ uint16_t SparkFun_Ambient_Light::_readRegister(uint8_t _reg)
   _i2cPort->requestFrom(_address, static_cast<uint8_t>(2)); // Two reads for 16 bit registers
   _regValue = _i2cPort->read(); // LSB
   _regValue |= uint16_t(_i2cPort->read()) << 8; //MSB
+  //Serial.printf("read reg 0x%x = 0x%x\n", _reg, _regValue);
   return(_regValue);
 
 }
