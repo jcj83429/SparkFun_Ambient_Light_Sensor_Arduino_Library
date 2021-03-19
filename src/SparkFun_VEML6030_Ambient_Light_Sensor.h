@@ -233,5 +233,8 @@ class SparkFun_Ambient_Light
     uint16_t _readRegister(uint8_t _reg);
 
     TwoWire *_i2cPort;
+
+    float _currentGain;
+    uint16_t _currentIntegTime;
 };
 #endif

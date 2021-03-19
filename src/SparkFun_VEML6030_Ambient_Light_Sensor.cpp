@@ -22,11 +22,12 @@ bool SparkFun_Ambient_Light::begin( TwoWire &wirePort )
 
   _i2cPort->beginTransmission(_address);
   uint8_t _ret = _i2cPort->endTransmission();
-  if( !_ret )
-    return true; 
-  else 
-    return false; 
+  if( _ret )
+    return false;
 
+  _currentGain = readGain();
+  _currentIntegTime = readIntegTime();
+  return true;
 }
 
 // REG0x00, bits [12:11]
@@ -50,7 +51,7 @@ void SparkFun_Ambient_Light::setGain(float gainVal){
     return; 
   
   _writeRegister(SETTING_REG, GAIN_MASK, bits, GAIN_POS); 
-
+  _currentGain = gainVal;
 }
 
 // REG0x00, bits [12:11]
@@ -101,8 +102,7 @@ void SparkFun_Ambient_Light::setIntegTime(uint16_t time){
     return;
 
   _writeRegister(SETTING_REG, INTEG_MASK, bits, INTEG_POS);  
-  uint8_t regVal = readIntegTime();
-
+  _currentIntegTime = time;
 }
 
 // REG0x00, bits[9:6]
@@ -427,36 +427,33 @@ float SparkFun_Ambient_Light::_calculateLux(uint16_t _lightBits){
   float _luxConv; 
   uint8_t _convPos;  
 
-  float _gain = readGain(); 
-  uint16_t _integTime = readIntegTime();
-
   // Here the gain is checked to get the position of the conversion value
   // within the integration time arrays. These values also represent the bit
   // values for setting the gain. 
-  if (_gain == 2.00) 
+  if (_currentGain == 2.00) 
     _convPos = 0;
-  else if (_gain == 1.00)
+  else if (_currentGain == 1.00)
     _convPos = 1; 
-  else if (_gain == .25)
+  else if (_currentGain == .25)
     _convPos = 2; 
-  else if (_gain == .125)
+  else if (_currentGain == .125)
     _convPos = 3; 
   else
     return UNKNOWN_ERROR;
 
   // Here we check the integration time which determines which array we probe
   // at the position determined above.
-  if(_integTime == 800)
+  if(_currentIntegTime == 800)
     _luxConv = eightHIt[_convPos]; 
-  else if(_integTime == 400)
+  else if(_currentIntegTime == 400)
     _luxConv = fourHIt[_convPos];
-  else if(_integTime == 200)
+  else if(_currentIntegTime == 200)
     _luxConv = twoHIt[_convPos];
-  else if(_integTime == 100)
+  else if(_currentIntegTime == 100)
     _luxConv = oneHIt[_convPos];
-  else if(_integTime == 50)
+  else if(_currentIntegTime == 50)
     _luxConv = fiftyIt[_convPos];
-  else if(_integTime == 25)
+  else if(_currentIntegTime == 25)
     _luxConv = twentyFiveIt[_convPos];
   else
     return UNKNOWN_ERROR; 
@@ -479,35 +476,33 @@ uint16_t SparkFun_Ambient_Light::_calculateBits(float _luxVal){
   float _luxConv; 
   uint8_t _convPos;  
 
-  float _gain = readGain();
-  float _integTime = readIntegTime();
   // Here the gain is checked to get the position of the conversion value
   // within the integration time arrays. These values also represent the bit
   // values for setting the gain. 
-  if (_gain == 2.00) 
+  if (_currentGain == 2.00) 
     _convPos = 0;
-  else if (_gain == 1.00)
+  else if (_currentGain == 1.00)
     _convPos = 1; 
-  else if (_gain == .25)
+  else if (_currentGain == .25)
     _convPos = 2; 
-  else if (_gain == .125)
+  else if (_currentGain == .125)
     _convPos = 3; 
   else
     return UNKNOWN_ERROR;
 
   // Here we check the integration time which determines which array we probe
   // at the position determined above.
-  if(_integTime == 800)
+  if(_currentIntegTime == 800)
     _luxConv = eightHIt[_convPos]; 
-  else if(_integTime == 400)
+  else if(_currentIntegTime == 400)
     _luxConv = fourHIt[_convPos];
-  else if(_integTime == 200)
+  else if(_currentIntegTime == 200)
     _luxConv = twoHIt[_convPos];
-  else if(_integTime == 100)
+  else if(_currentIntegTime == 100)
     _luxConv = oneHIt[_convPos];
-  else if(_integTime == 50)
+  else if(_currentIntegTime == 50)
     _luxConv = fiftyIt[_convPos];
-  else if(_integTime == 25)
+  else if(_currentIntegTime == 25)
     _luxConv = twentyFiveIt[_convPos];
   else
     return UNKNOWN_ERROR; 
